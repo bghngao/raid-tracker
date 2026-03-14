@@ -1,7 +1,7 @@
 # ============================================================
 #  Beautiful-Jekyll — _config.yml
-#  Compatible with raids.html (GW2 Raid Tracker page)
-#  https://github.com/daattali/beautiful-jekyll
+#  GW2 Raid Tracker
+#  Navbar and footer are suppressed via _includes overrides.
 # ============================================================
 
 
@@ -16,68 +16,40 @@ plugins:
 
 # ── Site identity ─────────────────────────────────────────────────────────────
 title: GW2 Raid Tracker
-rss-description: Weekly raid completion tracker for Guild Wars 2 accounts.
+description: Weekly raid completion tracker for Guild Wars 2 accounts.
 
-# Replace with your actual GitHub Pages URL.
-# User site  → https://YOURUSERNAME.github.io
-# Project site → https://YOURUSERNAME.github.io/REPONAME
-url: "https://bghngao.github.io"
+# Replace YOURUSERNAME with your actual GitHub username.
+# User site  (repo named YOURUSERNAME.github.io) → https://YOURUSERNAME.github.io
+# Project site (any other repo name)              → https://YOURUSERNAME.github.io
+url: "https://YOURUSERNAME.github.io"
 
 # Leave empty ("") for user/org sites.
-# For project sites set to the repo name, e.g.: /gw2-raids
+# Set to "/repo-name" for project sites, e.g.: /gw2-raids
 baseurl: ""
 
 
-# ── Author ────────────────────────────────────────────────────────────────────
-author:
-  name: Your Name
-
-
-# ── Navbar ───────────────────────────────────────────────────────────────────
-navbar-links:
-  Raid Tracker: "raids"
-  GW2 Wiki: "https://wiki.guildwars2.com/wiki/Raid"
-  API Reference: "https://api.guildwars2.com/v2/raids"
-
-nav-short: false
-navbar-var-length: true
-
-
 # ── Colours ───────────────────────────────────────────────────────────────────
-navbar-col:        "#0c0e14"
-navbar-text-col:   "#d8dae8"
-navbar-border-col: "#2a2f45"
-navbar-hover-col:  "#c8a84b"
-
-page-col:          "#0c0e14"
-link-col:          "#c8a84b"
-hover-col:         "#f0cc70"
-
-footer-col:        "#0c0e14"
-footer-text-col:   "#4a5070"
-footer-link-col:   "#8a6f2e"
-footer-hover-col:  "#c8a84b"
-
-
-# ── Footer social links ───────────────────────────────────────────────────────
-social-network-links:
-  github: YOURUSERNAME
+# These apply to the minimal layout's <head> chrome only (meta theme-color etc.)
+# The raids.html page overrides body/page colours with its own CSS variables.
+page-col:  "#0c0e14"
+link-col:  "#c8a84b"
+hover-col: "#f0cc70"
 
 
 # ── Page defaults ─────────────────────────────────────────────────────────────
-# Both scopes are items in the SAME defaults list — only one `defaults:` key.
 defaults:
   - scope:
       path: ""
       type: "pages"
     values:
-      layout: "page"
+      layout: "minimal"     # minimal = no navbar, no footer chrome from the theme
       comments: false
       social-share: false
       show-avatar: false
   - scope:
       path: "raids.html"
     values:
+      layout: "minimal"
       full-width: true
       comments: false
       social-share: false
