@@ -22,7 +22,7 @@ rss-description: Weekly raid completion tracker for Guild Wars 2 accounts.
 # Replace with your actual GitHub Pages URL.
 # For a user site  → https://YOURUSERNAME.github.io
 # For a project site → https://YOURUSERNAME.github.io/REPONAME
-url: "https://bghngao.github.io"
+url: "https://YOURUSERNAME.github.io"
 
 # baseurl is ONLY needed for project sites (non-root repos).
 # If your repo is named anything other than YOURUSERNAME.github.io,
@@ -33,7 +33,7 @@ baseurl: ""
 
 # ── Author ────────────────────────────────────────────────────────────────────
 author:
-  name: Z
+  name: Your Name
 
 
 # ── Navbar ───────────────────────────────────────────────────────────────────
