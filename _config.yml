@@ -1,8 +1,132 @@
+# ============================================================
+#  Beautiful-Jekyll — _config.yml
+#  Compatible with raids.html (GW2 Raid Tracker page)
+#  https://github.com/daattali/beautiful-jekyll
+# ============================================================
+
+
+# ── Theme ────────────────────────────────────────────────────────────────────
+# Use the remote theme (no gem install required — works on GitHub Pages as-is)
+remote_theme: daattali/beautiful-jekyll@6.0.1
+
+plugins:
+  - jekyll-remote-theme   # required to activate remote_theme on GitHub Pages
+  - jekyll-sitemap        # generates /sitemap.xml automatically
+  - jekyll-feed           # generates /feed.xml automatically
+
+
+# ── Site identity ─────────────────────────────────────────────────────────────
 title: GW2 Raid Tracker
-description: Real-time raid completion comparison
+rss-description: Weekly raid completion tracker for Guild Wars 2 accounts.
 
+# Replace with your actual GitHub Pages URL.
+# For a user site  → https://YOURUSERNAME.github.io
+# For a project site → https://YOURUSERNAME.github.io/REPONAME
+url: "https://bghngao.github.io"
+
+# baseurl is ONLY needed for project sites (non-root repos).
+# If your repo is named anything other than YOURUSERNAME.github.io,
+# set baseurl to the repo name with a leading slash, e.g.:  /gw2-raids
+# Leave it empty ("") for user/org sites.
+baseurl: ""
+
+
+# ── Author ────────────────────────────────────────────────────────────────────
 author:
-  name: Your Name
+  name: Z
 
-# Optional: set your avatar
-# avatar: "/assets/img/avatar.jpg"
+
+# ── Navbar ───────────────────────────────────────────────────────────────────
+# The raids.html page removes its own navbar and relies on this one entirely.
+# "Raid Tracker" links to raids.html via its permalink (/raids/).
+navbar-links:
+  Raid Tracker: "raids"
+  GW2 Wiki: "https://wiki.guildwars2.com/wiki/Raid"
+  API Reference: "https://api.guildwars2.com/v2/raids"
+
+# Optional: show an image logo instead of the site title in the navbar.
+# Uncomment and set the path to a local image (relative to repo root) or a URL.
+# navbar-img: "/assets/img/gw2-logo.png"
+
+# Keep the navbar at full height (do not shrink on scroll)
+nav-short: false
+
+# Make the navbar expand at a wider breakpoint so the links don't collapse
+# to a hamburger on large tablets.
+navbar-var-length: true
+
+
+# ── Colours ───────────────────────────────────────────────────────────────────
+# raids.html uses its own dark CSS variables that override the body background.
+# These theme colours control the Beautiful-Jekyll navbar/footer chrome only.
+navbar-col:       "#0c0e14"   # matches --bg from raids.html
+navbar-text-col:  "#d8dae8"   # matches --text
+navbar-border-col:"#2a2f45"   # matches --border
+navbar-hover-col: "#c8a84b"   # matches --gold
+
+page-col:         "#0c0e14"   # dark background so the page chrome matches
+link-col:         "#c8a84b"   # gold links inside theme-generated content
+hover-col:        "#f0cc70"   # gold-bright on hover
+
+footer-col:       "#0c0e14"
+footer-text-col:  "#4a5070"   # matches --text-muted
+footer-link-col:  "#8a6f2e"   # matches --gold-dim
+footer-hover-col: "#c8a84b"
+
+
+# ── Footer social links ───────────────────────────────────────────────────────
+# Remove or comment out any you don't use.
+social-network-links:
+  github: YOURUSERNAME
+  # rss: true        # uncomment if you want an RSS icon (requires rss-description)
+
+
+# ── Page defaults ─────────────────────────────────────────────────────────────
+# These YAML front-matter defaults apply to all pages unless overridden
+# in the individual file's own front matter.
+defaults:
+  -
+    scope:
+      path: ""        # applies to every file in the repo
+      type: "pages"
+    values:
+      layout: "page"
+      comments: false
+      social-share: false
+      show-avatar: false
+      # full-width: true  # uncomment to remove the narrow content column on all pages
+
+
+# ── Per-page override for raids.html ─────────────────────────────────────────
+# raids.html uses a fully custom dark layout with its own wide container.
+# full-width removes Beautiful-Jekyll's centred narrow column so the
+# raid comparison table can use the full viewport width.
+  -
+    scope:
+      path: "raids.html"
+    values:
+      full-width: true
+      comments: false
+      social-share: false
+      show-avatar: false
+
+
+# ── Markdown & build ─────────────────────────────────────────────────────────
+markdown: kramdown
+highlighter: rouge
+
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+permalink: pretty   # URLs become /raids/ instead of /raids.html
+
+
+# ── Exclusions ───────────────────────────────────────────────────────────────
+# Tell Jekyll not to copy these into the built _site/ folder.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - LICENSE
+  - "*.sh"
