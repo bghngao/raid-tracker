@@ -21,7 +21,7 @@ description: Weekly raid completion tracker for Guild Wars 2 accounts.
 # Replace YOURUSERNAME with your actual GitHub username.
 # User site  (repo named YOURUSERNAME.github.io) → https://YOURUSERNAME.github.io
 # Project site (any other repo name)              → https://YOURUSERNAME.github.io
-url: "https://bghngao.github.io"
+url: "https://YOURUSERNAME.github.io"
 
 # Leave empty ("") for user/org sites.
 # Set to "/repo-name" for project sites, e.g.: /gw2-raids

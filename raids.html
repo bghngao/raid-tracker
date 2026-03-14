@@ -1,0 +1,528 @@
+---
+layout: page
+title: Raid Tracker
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+
+<style>
+  /* ── CSS Variables ── */
+  :root {
+    --bg:           #0c0e14;
+    --bg-panel:     #13151e;
+    --bg-card:      #191c28;
+    --bg-card-alt:  #1e2130;
+    --border:       #2a2f45;
+    --border-glow:  #4a5080;
+    --gold:         #c8a84b;
+    --gold-dim:     #8a6f2e;
+    --gold-bright:  #f0cc70;
+    --teal:         #3db8b0;
+    --red:          #c0392b;
+    --green:        #27ae60;
+    --green-dim:    #145c32;
+    --text:         #d8dae8;
+    --text-dim:     #7a8099;
+    --text-muted:   #4a5070;
+    --radius:       6px;
+  }
+
+  /* Override Beautiful-Jekyll body/page background for this page */
+  body { background: var(--bg) !important; color: var(--text) !important; }
+  .container-md, .page-content { background: transparent !important; }
+
+  /* ── Background texture ── */
+  .raid-wrap::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(74,80,128,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(61,184,176,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+    gap: 1.5rem; padding: .6rem 2rem;
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(19,21,30,0.8);
+    margin-bottom: 1.5rem;
+  }
+  .status-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    margin-right: .35rem;
+    transition: background .4s;
+  }
+  .status-dot.ok      { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.err     { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+  .status-dot.loading { background: var(--gold);  animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  @keyframes fadeUp { to { opacity:1; transform:none; } }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* ── Summary row ── */
+  .summary-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.4rem;
+    display: flex; flex-direction: column; gap: .3rem;
+    opacity: 0; transform: translateY(12px);
+    animation: fadeUp .5s forwards;
+  }
+  .summary-card:nth-child(2) { animation-delay: .1s; }
+  .summary-card:nth-child(3) { animation-delay: .2s; }
+  .summary-label {
+    font-family: 'Cinzel', serif;
+    font-size: .68rem; letter-spacing: .12em;
+    color: var(--text-muted); text-transform: uppercase;
+  }
+  .summary-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem; font-weight: 700;
+    color: var(--gold-bright);
+  }
+  .summary-detail { font-size: .88rem; color: var(--text-dim); }
+
+  /* ── Section heading ── */
+  .section-heading {
+    font-family: 'Cinzel', serif;
+    font-size: .78rem; letter-spacing: .18em;
+    color: var(--text-muted); text-transform: uppercase;
+    margin: 2.5rem 0 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Accounts header row ── */
+  .accounts-header {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr;
+    gap: 1px;
+    margin-bottom: 1px;
+  }
+  .accounts-header > div {
+    background: var(--bg-panel);
+    padding: .7rem 1.2rem;
+    font-family: 'Cinzel', serif;
+    font-size: .75rem; letter-spacing: .1em;
+    color: var(--gold); text-transform: uppercase;
+    border: 1px solid var(--border);
+  }
+  .accounts-header > div:first-child {
+    border-radius: var(--radius) 0 0 0;
+    color: var(--text-muted);
+  }
+  .accounts-header > div:last-child { border-radius: 0 var(--radius) 0 0; }
+
+  /* ── Wing block ── */
+  .wing-block {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    opacity: 0; transform: translateY(8px);
+    animation: fadeUp .45s forwards;
+  }
+  .wing-header {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr;
+    gap: 1px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .wing-title-cell {
+    padding: .85rem 1.2rem;
+    font-family: 'Cinzel', serif;
+    font-size: .9rem; font-weight: 600;
+    color: var(--gold-bright); letter-spacing: .05em;
+    background: var(--bg-panel);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .wing-title-cell svg { width: 18px; height: 18px; opacity: .7; }
+  .wing-progress-cell {
+    padding: .85rem 1.2rem;
+    display: flex; align-items: center; gap: .8rem;
+    background: var(--bg-panel);
+  }
+  .progress-bar-wrap {
+    flex: 1; height: 6px;
+    background: var(--border);
+    border-radius: 3px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  }
+  .progress-bar-fill.full {
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+  }
+  .progress-pct {
+    font-family: 'Cinzel', serif;
+    font-size: .75rem; color: var(--text-dim);
+    min-width: 36px; text-align: right;
+  }
+
+  /* ── Encounter rows ── */
+  .encounter-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-top: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .encounter-row:hover { background: var(--border-glow); }
+  .encounter-row > div {
+    background: var(--bg-card);
+    padding: .65rem 1.2rem;
+    display: flex; align-items: center;
+    transition: background .15s;
+  }
+  .encounter-row:hover > div { background: var(--bg-card-alt); }
+  .encounter-name { font-size: .95rem; color: var(--text); letter-spacing: .02em; }
+
+  /* ── Status pill ── */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: 'Cinzel', serif;
+    font-size: .68rem; letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .28rem .75rem;
+    border-radius: 20px; white-space: nowrap;
+  }
+  .status-pill.done {
+    background: rgba(39,174,96,.12); color: var(--green);
+    border: 1px solid rgba(39,174,96,.3);
+  }
+  .status-pill.todo {
+    background: rgba(192,57,43,.1); color: #e07060;
+    border: 1px solid rgba(192,57,43,.25);
+  }
+  .status-pill.loading-pill {
+    background: rgba(200,168,75,.08); color: var(--gold-dim);
+    border: 1px solid rgba(200,168,75,.15);
+    animation: pulse 1.2s infinite;
+  }
+
+  /* ── Diff badge ── */
+  .diff-badge {
+    display: inline-flex; align-items: center;
+    margin-left: auto; font-size: .7rem;
+    color: var(--text-muted); font-style: italic;
+  }
+  .diff-badge.only-a { color: #e6b84a; }
+  .diff-badge.only-b { color: var(--teal); }
+
+  /* ── Error box ── */
+  .error-box {
+    background: rgba(192,57,43,.12);
+    border: 1px solid rgba(192,57,43,.3);
+    border-radius: var(--radius);
+    padding: 1rem 1.4rem; color: #e07060;
+    font-size: .9rem; margin-bottom: 1rem;
+  }
+
+  /* ── Beautiful-Jekyll title override ── */
+  /* Targets the h1 the minimal layout injects above page content */
+  .page-heading,
+  h1.page-heading,
+  #page-header h1,
+  .container-md > h1:first-of-type,
+  .post-title,
+  header.intro-header .page-heading {
+    font-family: 'Cinzel', serif !important;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem) !important;
+    font-weight: 700 !important;
+    color: var(--gold-bright) !important;
+    letter-spacing: .08em !important;
+    text-align: center !important;
+    text-shadow: 0 0 32px rgba(200,168,75,.3) !important;
+    margin: 2rem auto 1.5rem !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    background: none !important;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .accounts-header, .wing-header, .encounter-row {
+      grid-template-columns: 130px 1fr 1fr;
+    }
+    .summary-row { grid-template-columns: 1fr; }
+    .encounter-id { display: none; }
+    .status-bar { gap: .8rem; font-size: .62rem; }
+  }
+</style>
+
+<!-- ── Page wrapper ── -->
+<div class="raid-wrap">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span><span class="status-dot loading" id="dot-raids"></span>RAID DATA</span>
+    <span><span class="status-dot loading" id="dot-a"></span>ACCOUNT A</span>
+    <span><span class="status-dot loading" id="dot-b"></span>ACCOUNT B</span>
+    <span id="ts-display" style="margin-left:auto;">—</span>
+  </div>
+
+  <!-- Summary row -->
+  <div class="summary-row">
+    <div class="summary-card">
+      <span class="summary-label">Total Encounters</span>
+      <span class="summary-value" id="sum-total">—</span>
+      <span class="summary-detail">across all raid wings</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Account A Cleared</span>
+      <span class="summary-value" id="sum-a">—</span>
+      <span class="summary-detail" id="sum-a-pct">this week</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Account B Cleared</span>
+      <span class="summary-value" id="sum-b">—</span>
+      <span class="summary-detail" id="sum-b-pct">this week</span>
+    </div>
+  </div>
+
+  <!-- Error area -->
+  <div id="error-area"></div>
+
+  <!-- Table section -->
+  <div class="section-heading">Weekly Raid Progress</div>
+
+  <div class="accounts-header">
+    <div>Wing / Encounter</div>
+    <div>Account A</div>
+    <div>Account B</div>
+  </div>
+
+  <div id="wings-container">
+    <div style="padding:2rem;text-align:center;color:var(--text-muted);font-style:italic;">
+      Loading raid data…
+    </div>
+  </div>
+
+</div><!-- /.raid-wrap -->
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────────
+const RAIDS_API = 'https://api.guildwars2.com/v2/raids';
+const TOKEN_A   = '9BB0CF18-9082-B44D-8B0F-5A755478BCB694B9FEED-FBB4-4E45-A128-F61C01299E0A';
+const TOKEN_B   = '11E0C93E-94C5-1146-B4E1-16203F83416F42EBAA79-1641-4670-AA6A-685EEBE095D3';
+const ACC_API_A = `https://api.guildwars2.com/v2/account/raids?access_token=${TOKEN_A}`;
+const ACC_API_B = `https://api.guildwars2.com/v2/account/raids?access_token=${TOKEN_B}`;
+
+// ── Human-readable names ─────────────────────────────────────────────────────
+const WING_NAMES = {
+  forsaken_thicket:        'Forsaken Thicket',
+  bastion_of_the_penitent: 'Bastion of the Penitent',
+  hall_of_chains:          'Hall of Chains',
+  mythwright_gambit:       'Mythwright Gambit',
+  the_key_of_ahdashim:     'The Key of Ahdashim',
+  mount_balrior:           'Mount Balrior',
+};
+const BOSS_NAMES = {
+  vale_guardian:'Vale Guardian', spirit_woods:'Spirit Woods',
+  gorseval:'Gorseval', sabetha:'Sabetha',
+  slothasor:'Slothasor', bandit_trio:'Bandit Trio', matthias:'Matthias Gabrel',
+  escort:'Escort', keep_construct:'Keep Construct',
+  twisted_castle:'Twisted Castle', xera:'Xera',
+  cairn:'Cairn the Indomitable', mursaat_overseer:'Mursaat Overseer',
+  samarog:'Samarog', deimos:'Deimos',
+  soulless_horror:'Soulless Horror', river_of_souls:'River of Souls',
+  statues_of_grenth:'Statues of Grenth', voice_in_the_void:'Voice in the Void',
+  greer:'Greer, the Blightbringer', decima:'Decima, the Stormsinger',
+  ura:'Ura, the Last Defender', qadim:'Qadim', qadim_the_peerless:'Qadim the Peerless',
+};
+const fmt = id => (BOSS_NAMES[id] || id).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const fmtW = id => WING_NAMES[id] || id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function setDot(id, state) {
+  const el = document.getElementById(id);
+  if (el) el.className = 'status-dot ' + state;
+}
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.text || `HTTP ${r.status}`);
+  return j;
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+async function main() {
+  document.getElementById('ts-display').textContent =
+    'LOADED ' + new Date().toUTCString().replace(' GMT','') + ' UTC';
+
+  // Fire all three requests in parallel
+  const [rRes, aRes, bRes] = await Promise.allSettled([
+    fetchJSON(RAIDS_API),
+    fetchJSON(ACC_API_A),
+    fetchJSON(ACC_API_B),
+  ]);
+
+  const errMsgs = [];
+
+  const raidList = rRes.status === 'fulfilled'
+    ? (setDot('dot-raids','ok'), rRes.value)
+    : (setDot('dot-raids','err'), errMsgs.push('Raids API: ' + rRes.reason.message), []);
+
+  const completedA = aRes.status === 'fulfilled'
+    ? (setDot('dot-a','ok'), new Set(aRes.value))
+    : (setDot('dot-a','err'), errMsgs.push('Account A: ' + aRes.reason.message), null);
+
+  const completedB = bRes.status === 'fulfilled'
+    ? (setDot('dot-b','ok'), new Set(bRes.value))
+    : (setDot('dot-b','err'), errMsgs.push('Account B: ' + bRes.reason.message), null);
+
+  if (errMsgs.length) {
+    document.getElementById('error-area').innerHTML =
+      errMsgs.map(m => `<div class="error-box">⚠ ${m}</div>`).join('');
+  }
+
+  // Fetch detailed wing/encounter data
+  let wingsData = [];
+  if (raidList.length) {
+    try {
+      wingsData = await fetchJSON(
+        `https://api.guildwars2.com/v2/raids?ids=${raidList.join(',')}`
+      );
+    } catch {
+      wingsData = raidList.map(id => ({ id, wings: [] }));
+    }
+  }
+
+  render(wingsData, completedA, completedB);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(wingsData, completedA, completedB) {
+  const container = document.getElementById('wings-container');
+  container.innerHTML = '';
+
+  // Flatten all non-Checkpoint encounters
+  const allEncs = wingsData.flatMap(raid =>
+    (raid.wings || []).flatMap(wing =>
+      (wing.events || [])
+        .filter(ev => ev.type !== 'Checkpoint')
+        .map(ev => ({ raidId: raid.id, eventId: ev.id }))
+    )
+  );
+
+  const total = allEncs.length;
+  const countA = completedA ? allEncs.filter(e => completedA.has(e.eventId)).length : null;
+  const countB = completedB ? allEncs.filter(e => completedB.has(e.eventId)).length : null;
+
+  document.getElementById('sum-total').textContent = total || '—';
+  if (countA !== null) {
+    document.getElementById('sum-a').textContent = countA;
+    document.getElementById('sum-a-pct').textContent =
+      total ? `${Math.round(countA / total * 100)}% cleared` : 'this week';
+  }
+  if (countB !== null) {
+    document.getElementById('sum-b').textContent = countB;
+    document.getElementById('sum-b-pct').textContent =
+      total ? `${Math.round(countB / total * 100)}% cleared` : 'this week';
+  }
+
+  if (!wingsData.length) {
+    container.innerHTML = '<div style="padding:2rem;color:var(--text-muted);font-style:italic;">No raid data available.</div>';
+    return;
+  }
+
+  wingsData.forEach((raid, ri) => {
+    const encounters = (raid.wings || []).flatMap(wing =>
+      (wing.events || []).filter(ev => ev.type !== 'Checkpoint').map(ev => ev.id)
+    );
+
+    const tW   = encounters.length;
+    const dA   = completedA ? encounters.filter(id => completedA.has(id)).length : null;
+    const dB   = completedB ? encounters.filter(id => completedB.has(id)).length : null;
+    const pctA = tW && dA !== null ? Math.round(dA / tW * 100) : 0;
+    const pctB = tW && dB !== null ? Math.round(dB / tW * 100) : 0;
+
+    function progressCell(done, pct) {
+      if (done === null) return `<div class="wing-progress-cell"><span style="color:var(--text-muted);font-style:italic;font-size:.85rem">unavailable</span></div>`;
+      const full = done === tW && tW > 0;
+      return `<div class="wing-progress-cell">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill${full ? ' full' : ''}" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-pct">${done}/${tW}</span>
+      </div>`;
+    }
+
+    function pill(done) {
+      if (done === null) return `<span class="status-pill loading-pill">⋯ loading</span>`;
+      return done
+        ? `<span class="status-pill done">✓ Cleared</span>`
+        : `<span class="status-pill todo">✗ Remaining</span>`;
+    }
+
+    const block = document.createElement('div');
+    block.className = 'wing-block';
+    block.style.animationDelay = (ri * 0.07) + 's';
+
+    let html = `
+      <div class="wing-header">
+        <div class="wing-title-cell">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          ${fmtW(raid.id)}
+        </div>
+        ${progressCell(dA, pctA)}
+        ${progressCell(dB, pctB)}
+      </div>`;
+
+    encounters.forEach(encId => {
+      const eA = completedA ? completedA.has(encId) : null;
+      const eB = completedB ? completedB.has(encId) : null;
+      let diff = '';
+      if (eA !== null && eB !== null) {
+        if (eA && !eB)  diff = `<span class="diff-badge only-a">A only</span>`;
+        else if (!eA && eB) diff = `<span class="diff-badge only-b">B only</span>`;
+        else if (eA && eB)  diff = `<span class="diff-badge both">both</span>`;
+      }
+
+      html += `
+        <div class="encounter-row">
+          <div>
+            <span class="encounter-name">${fmt(encId)}</span>
+          </div>
+          <div>${pill(eA)}${diff}</div>
+          <div>${pill(eB)}</div>
+        </div>`;
+    });
+
+    block.innerHTML = html;
+    container.appendChild(block);
+  });
+}
+
+main().catch(e => {
+  document.getElementById('error-area').innerHTML =
+    `<div class="error-box">Fatal error: ${e.message}</div>`;
+  ['dot-raids','dot-a','dot-b'].forEach(id => setDot(id, 'err'));
+});
+</script>
