@@ -28,7 +28,7 @@ url: "https://bghngao.github.io"
 # If your repo is named anything other than YOURUSERNAME.github.io,
 # set baseurl to the repo name with a leading slash, e.g.:  /gw2-raids
 # Leave it empty ("") for user/org sites.
-baseurl: ""
+baseurl: "/raid-tracker"
 
 
 # ── Author ────────────────────────────────────────────────────────────────────
