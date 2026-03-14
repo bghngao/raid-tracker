@@ -1,0 +1,14 @@
+remote_theme: daattali/beautiful-jekyll
+
+title: GW2 Raid Tracker
+description: Real-time raid completion comparison
+
+author:
+  name: Your Name
+
+navbar-links:
+  GW2 Wiki: "https://wiki.guildwars2.com/wiki/Raid"
+  API Docs: "https://api.guildwars2.com/v2/raids"
+
+# Optional: set your avatar
+# avatar: "/assets/img/avatar.jpg"
