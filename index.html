@@ -1,0 +1,186 @@
+---
+layout: default
+title: GW2 Raid Tracker
+---
+
+<!-- Static raid structure from Jekyll data, embedded as JS -->
+<script>
+const RAIDS = [
+  {% for raid in site.data.raids %}
+  {
+    id: "{{ raid.id }}",
+    wings: [
+      {% for wing in raid.wings %}
+      {
+        name: {{ wing.name | jsonify }},
+        bosses: [
+          {% for boss in wing.bosses %}
+          { name: {{ boss.name | jsonify }}, id: "{{ boss.id }}", type: "{{ boss.type }}" }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ]
+      }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  }{% unless forloop.last %},{% endunless %}
+  {% endfor %}
+];
+
+const ACCOUNTS = {
+  main: { label: "Main", token: "9BB0CF18-9082-B44D-8B0F-5A755478BCB694B9FEED-FBB4-4E45-A128-F61C01299E0A" },
+  alt:  { label: "Alt",  token: "11E0C93E-94C5-1146-B4E1-16203F83416F42EBAA79-1641-4670-AA6A-685EEBE095D3" }
+};
+</script>
+
+<!-- Loading state -->
+<div id="loading-state" class="loading-state">
+  <div class="loading-sigil">⚔</div>
+  <p class="loading-text">Fetching raid data from the API…</p>
+</div>
+
+<!-- Error state -->
+<div id="error-state" class="error-state" style="display:none">
+  <p class="error-text">⚠️ Failed to fetch raid data. Check your API tokens or try again.</p>
+</div>
+
+<!-- Main content (hidden until data loads) -->
+<div id="main-content" style="display:none">
+
+  <!-- SUMMARY -->
+  <section class="summary-section">
+    <h2 class="section-heading">Weekly Summary</h2>
+    <div class="summary-grid">
+      <div class="summary-card card-main">
+        <div class="account-label">🟦 Main</div>
+        <div class="stat-row"><span class="stat-label">Cleared</span><span class="stat-val cleared" id="main-cleared">—</span></div>
+        <div class="stat-row"><span class="stat-label">Remaining</span><span class="stat-val remaining" id="main-remaining">—</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="main-bar" style="width:0%"></div></div>
+        <div class="progress-label" id="main-pct">—</div>
+      </div>
+      <div class="summary-card card-both">
+        <div class="account-label">🤝 Both Accounts</div>
+        <div class="stat-row"><span class="stat-label">Shared Clears</span><span class="stat-val cleared" id="both-cleared">—</span></div>
+        <div class="stat-row"><span class="stat-label">Total Bosses</span><span class="stat-val" id="total-bosses">—</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-gold" id="both-bar" style="width:0%"></div></div>
+        <div class="progress-label" id="both-pct">—</div>
+      </div>
+      <div class="summary-card card-alt">
+        <div class="account-label">🟧 Alt</div>
+        <div class="stat-row"><span class="stat-label">Cleared</span><span class="stat-val cleared" id="alt-cleared">—</span></div>
+        <div class="stat-row"><span class="stat-label">Remaining</span><span class="stat-val remaining" id="alt-remaining">—</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-alt" id="alt-bar" style="width:0%"></div></div>
+        <div class="progress-label" id="alt-pct">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WINGS -->
+  <section class="wings-section">
+    <h2 class="section-heading">Wing Breakdown</h2>
+    <div id="wings-container"></div>
+  </section>
+
+</div>
+
+<script>
+(async function () {
+  const BASE = "https://api.guildwars2.com/v2/account/raids";
+
+  async function fetchClears(token) {
+    const res = await fetch(`${BASE}?access_token=${token}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json(); // array of cleared boss IDs
+  }
+
+  function totalBosses() {
+    return RAIDS.reduce((sum, r) => sum + r.wings.reduce((s, w) => s + w.bosses.length, 0), 0);
+  }
+
+  function pct(n, total) {
+    return Math.round(n * 100 / total);
+  }
+
+  function buildWings(mainCleared, altCleared) {
+    const container = document.getElementById("wings-container");
+    container.innerHTML = "";
+
+    RAIDS.forEach(raid => {
+      raid.wings.forEach(wing => {
+        const block = document.createElement("div");
+        block.className = "wing-block";
+
+        const rows = wing.bosses.map(boss => {
+          const mc = mainCleared.includes(boss.id);
+          const ac = altCleared.includes(boss.id);
+          let rowClass = "row-none";
+          if (mc && ac) rowClass = "row-both";
+          else if (mc)  rowClass = "row-main";
+          else if (ac)  rowClass = "row-alt";
+
+          return `<tr class="${rowClass}">
+            <td class="boss-name">${boss.name}</td>
+            <td><span class="type-badge type-${boss.type.toLowerCase()}">${boss.type}</span></td>
+            <td class="status-cell">${mc ? "✅" : "❌"}</td>
+            <td class="status-cell">${ac ? "✅" : "❌"}</td>
+          </tr>`;
+        }).join("");
+
+        block.innerHTML = `
+          <h3 class="wing-title">${wing.name}</h3>
+          <table class="boss-table">
+            <thead>
+              <tr>
+                <th class="col-boss">Boss / Event</th>
+                <th class="col-type">Type</th>
+                <th class="col-account main-col">🟦 Main</th>
+                <th class="col-account alt-col">🟧 Alt</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+
+        container.appendChild(block);
+      });
+    });
+  }
+
+  function updateSummary(mainCleared, altCleared) {
+    const total = totalBosses();
+    const mc = mainCleared.length;
+    const ac = altCleared.length;
+    const bc = mainCleared.filter(id => altCleared.includes(id)).length;
+
+    document.getElementById("total-bosses").textContent  = total;
+
+    document.getElementById("main-cleared").textContent   = mc;
+    document.getElementById("main-remaining").textContent = total - mc;
+    document.getElementById("main-bar").style.width       = pct(mc, total) + "%";
+    document.getElementById("main-pct").textContent       = pct(mc, total) + "% complete";
+
+    document.getElementById("alt-cleared").textContent    = ac;
+    document.getElementById("alt-remaining").textContent  = total - ac;
+    document.getElementById("alt-bar").style.width        = pct(ac, total) + "%";
+    document.getElementById("alt-pct").textContent        = pct(ac, total) + "% complete";
+
+    document.getElementById("both-cleared").textContent   = bc;
+    document.getElementById("both-bar").style.width       = pct(bc, total) + "%";
+    document.getElementById("both-pct").textContent       = pct(bc, total) + "% overlap";
+  }
+
+  try {
+    const [mainCleared, altCleared] = await Promise.all([
+      fetchClears(ACCOUNTS.main.token),
+      fetchClears(ACCOUNTS.alt.token)
+    ]);
+
+    updateSummary(mainCleared, altCleared);
+    buildWings(mainCleared, altCleared);
+
+    document.getElementById("loading-state").style.display = "none";
+    document.getElementById("main-content").style.display  = "block";
+  } catch (err) {
+    console.error(err);
+    document.getElementById("loading-state").style.display = "none";
+    document.getElementById("error-state").style.display   = "block";
+  }
+})();
+</script>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page.title | default: site.title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-sigil">⚔</div>
+      <h1 class="site-title">{{ site.title }}</h1>
+      <p class="site-subtitle">Weekly Raid Completion Report</p>
+      <div class="reset-notice">Clears reset every <strong>Monday 07:30 UTC</strong></div>
+    </div>
+  </header>
+
+  <main class="site-main">
+    {{ content }}
+  </main>
+
+  <footer class="site-footer">
+    <p>Powered by the <a href="https://api.guildwars2.com/v2" target="_blank">Guild Wars 2 Official API</a> &amp; GitHub Pages</p>
+  </footer>
+</body>
+</html>

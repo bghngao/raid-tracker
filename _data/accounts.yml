@@ -1,0 +1,24 @@
+main:
+  label: "Main"
+  cleared:
+    - vale_guardian
+    - gorseval
+    - sabetha
+    - keep_construct
+    - xera
+    - cairn
+    - voice_in_the_void
+    - qadim_the_peerless
+
+alt:
+  label: "Alt"
+  cleared:
+    - gorseval
+    - slothasor
+    - matthias
+    - keep_construct
+    - cairn
+    - mursaat_overseer
+    - samarog
+    - deimos
+    - soulless_horror
